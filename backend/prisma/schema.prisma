@@ -1,5 +1,5 @@
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -13,9 +13,10 @@ model Tenant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users     User[]
-  employees Employee[]
+  users         User[]
+  employees     Employee[]
   compensations Compensation[]
+  auditLogs     AuditLog[]
 }
 
 model User {
@@ -27,8 +28,9 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+  tenant               Tenant         @relation(fields: [tenantId], references: [id])
   compensationsCreated Compensation[]
+  auditLogsCreated     AuditLog[]
 
   @@unique([tenantId, email])
 }
@@ -46,20 +48,21 @@ model Employee {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
   compensations Compensation[]
+  auditLogs     AuditLog[]
 
   @@unique([tenantId, email])
   @@index([tenantId, lastName, firstName])
   @@index([tenantId, department])
+  @@index([tenantId, country])
 }
 
 model Compensation {
   id            String   @id @default(uuid())
   tenantId      String
   employeeId    String
-  // Money stored as integer (e.g. cents) to avoid floating point issues since SQLite lacks Decimal
-  amount        Int
+  amount        Decimal  @db.Decimal(10, 2)
   currency      String
   effectiveDate DateTime
   createdAt     DateTime @default(now())
@@ -69,5 +72,30 @@ model Compensation {
   employee      Employee @relation(fields: [employeeId], references: [id])
   creator       User     @relation(fields: [createdBy], references: [id])
 
+  // Relations for AuditLog
+  auditLogsAsPrevious AuditLog[] @relation("PreviousCompensation")
+  auditLogsAsNew      AuditLog[] @relation("NewCompensation")
+
   @@index([tenantId, employeeId, effectiveDate(sort: Desc)])
+}
+
+model AuditLog {
+  id                     String   @id @default(uuid())
+  tenantId               String
+  employeeId             String
+  actorId                String
+  action                 String   // e.g., "SALARY_UPDATE"
+  entity                 String   // e.g., "COMPENSATION"
+  previousCompensationId String?
+  newCompensationId      String
+  reason                 String?
+  createdAt              DateTime @default(now())
+
+  tenant               Tenant        @relation(fields: [tenantId], references: [id])
+  employee             Employee      @relation(fields: [employeeId], references: [id])
+  actor                User          @relation(fields: [actorId], references: [id])
+  previousCompensation Compensation? @relation("PreviousCompensation", fields: [previousCompensationId], references: [id])
+  newCompensation      Compensation  @relation("NewCompensation", fields: [newCompensationId], references: [id])
+
+  @@index([tenantId, employeeId])
 }

@@ -13,7 +13,7 @@ app.use(express.json());
 
 // Request IDs
 app.use((req: Request, res: Response, next: NextFunction) => {
-  req.id = req.headers['x-request-id'] || uuidv4();
+  req.id = (req.headers['x-request-id'] as string) || uuidv4();
   res.setHeader('x-request-id', req.id);
   next();
 });
@@ -38,11 +38,13 @@ app.get('/health/ready', (req: Request, res: Response) => {
 
 import authRouter from './routes/auth';
 import employeeRouter from './routes/employees';
+import analyticsRouter from './routes/analytics';
 
-// Catch-all error handler
 app.use('/api/auth', authRouter);
 app.use('/api/employees', employeeRouter);
+app.use('/api/analytics', analyticsRouter);
 
+// Catch-all error handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   req.log.error(err);
   res.status(500).json({ error: 'Internal Server Error' });

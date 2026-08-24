@@ -1,84 +1,94 @@
 import prisma from './db';
 import { hash } from 'bcryptjs';
+import { v4 as uuidv4 } from 'uuid';
 
 async function main() {
   console.log('Starting seed...');
+  
+  // Clean up if running repeatedly
+  await prisma.auditLog.deleteMany();
+  await prisma.compensation.deleteMany();
+  await prisma.employee.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.tenant.deleteMany();
 
   // 1. Create two tenants
-  const acme = await prisma.tenant.create({
-    data: { name: 'ACME Corp' }
+  const acmeId = uuidv4();
+  const globexId = uuidv4();
+
+  await prisma.tenant.createMany({
+    data: [
+      { id: acmeId, name: 'ACME Corp' },
+      { id: globexId, name: 'Globex Inc' }
+    ]
   });
 
-  const globex = await prisma.tenant.create({
-    data: { name: 'Globex Inc' }
-  });
-
-  // 2. Create an HR Manager for ACME
+  // 2. Create HR Managers
   const passwordHash = await hash('password123', 10);
-  const hrManager = await prisma.user.create({
-    data: {
-      tenantId: acme.id,
-      email: 'hr@acme.com',
-      passwordHash,
-      name: 'Alice HR'
-    }
+  const acmeHrId = uuidv4();
+  const globexHrId = uuidv4();
+  
+  await prisma.user.createMany({
+    data: [
+      { id: acmeHrId, tenantId: acmeId, email: 'hr@acme.com', passwordHash, name: 'Alice HR' },
+      { id: globexHrId, tenantId: globexId, email: 'hr@globex.com', passwordHash, name: 'Bob Globex' }
+    ]
   });
 
-  // Create an HR Manager for Globex
-  const hrGlobex = await prisma.user.create({
-    data: {
-      tenantId: globex.id,
-      email: 'hr@globex.com',
-      passwordHash,
-      name: 'Bob Globex'
-    }
-  });
+  console.log('Seeding 10,000 employees total (MySQL batch insert)...');
 
-  console.log('Seeding employees...');
-
-  // 3. Seed exactly 10,000 employees total (9,000 for ACME, 1,000 for Globex to ensure some distribution)
   const departments = ['Engineering', 'Sales', 'Marketing', 'HR', 'Finance'];
   const countries = ['USA', 'UK', 'India', 'Canada', 'Germany'];
   
-  const createEmployees = async (tenantId: string, count: number, hrId: string) => {
-    // SQLite limits batch inserts, so we'll do smaller chunks
-    const chunkSize = 500;
+  const createEmployees = async (tenantId: string, count: number, hrId: string, startIndex: number) => {
+    const chunkSize = 2000;
+    
     for (let i = 0; i < count; i += chunkSize) {
       const chunk = Math.min(chunkSize, count - i);
-      const employeesData = Array.from({ length: chunk }).map((_, index) => ({
-        tenantId,
-        firstName: `First${i + index}`,
-        lastName: `Last${i + index}`,
-        email: `emp${i + index}_${tenantId.substring(0,4)}@company.com`,
-        department: departments[Math.floor(Math.random() * departments.length)],
-        country: countries[Math.floor(Math.random() * countries.length)],
-        hireDate: new Date(Date.now() - Math.random() * 10000000000),
-        isActive: true,
-      }));
-      
-      const createdEmployees = await Promise.all(
-        employeesData.map(e => prisma.employee.create({ data: e }))
-      );
+      const employees = [];
+      const compensations = [];
 
-      // Create initial compensation for them
-      const compData = createdEmployees.map(e => ({
-        tenantId,
-        employeeId: e.id,
-        amount: Math.floor(Math.random() * 10000000) + 5000000, // Cents ($50k - $150k)
-        currency: 'USD',
-        effectiveDate: e.hireDate,
-        createdBy: hrId,
-      }));
+      for (let j = 0; j < chunk; j++) {
+        const empId = uuidv4();
+        const hireDate = new Date(Date.now() - (Math.random() * 5 * 365 * 24 * 60 * 60 * 1000));
+        
+        employees.push({
+          id: empId,
+          tenantId,
+          firstName: `First${startIndex + i + j}`,
+          lastName: `Last${startIndex + i + j}`,
+          email: `emp${startIndex + i + j}_${tenantId.substring(0,4)}@company.com`,
+          department: departments[(i + j) % departments.length],
+          country: countries[(i + j) % countries.length],
+          hireDate,
+          isActive: true,
+        });
 
-      await prisma.compensation.createMany({ data: compData });
+        compensations.push({
+          id: uuidv4(),
+          tenantId,
+          employeeId: empId,
+          amount: 50000 + ((i + j) % 50000), // deterministic salary
+          currency: 'USD',
+          effectiveDate: hireDate,
+          createdBy: hrId,
+        });
+      }
+
+      await prisma.$transaction([
+        prisma.employee.createMany({ data: employees }),
+        prisma.compensation.createMany({ data: compensations })
+      ]);
+
       console.log(`Seeded chunk ${i} to ${i + chunk} for tenant ${tenantId}`);
     }
   };
 
-  await createEmployees(acme.id, 9000, hrManager.id);
-  await createEmployees(globex.id, 1000, hrGlobex.id);
+  await createEmployees(acmeId, 8000, acmeHrId, 0);
+  await createEmployees(globexId, 2000, globexHrId, 8000);
 
-  console.log('Seed completed successfully!');
+  const empCount = await prisma.employee.count();
+  console.log(`Seed completed successfully! Total Employees: ${empCount}`);
 }
 
 main()

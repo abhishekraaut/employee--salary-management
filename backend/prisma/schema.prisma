@@ -1,0 +1,73 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     User[]
+  employees Employee[]
+  compensations Compensation[]
+}
+
+model User {
+  id           String   @id @default(uuid())
+  tenantId     String
+  email        String
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+  compensationsCreated Compensation[]
+
+  @@unique([tenantId, email])
+}
+
+model Employee {
+  id          String   @id @default(uuid())
+  tenantId    String
+  firstName   String
+  lastName    String
+  email       String
+  department  String
+  country     String
+  hireDate    DateTime
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  compensations Compensation[]
+
+  @@unique([tenantId, email])
+  @@index([tenantId, lastName, firstName])
+  @@index([tenantId, department])
+}
+
+model Compensation {
+  id            String   @id @default(uuid())
+  tenantId      String
+  employeeId    String
+  // Money stored as integer (e.g. cents) to avoid floating point issues since SQLite lacks Decimal
+  amount        Int
+  currency      String
+  effectiveDate DateTime
+  createdAt     DateTime @default(now())
+  createdBy     String
+
+  tenant        Tenant   @relation(fields: [tenantId], references: [id])
+  employee      Employee @relation(fields: [employeeId], references: [id])
+  creator       User     @relation(fields: [createdBy], references: [id])
+
+  @@index([tenantId, employeeId, effectiveDate(sort: Desc)])
+}

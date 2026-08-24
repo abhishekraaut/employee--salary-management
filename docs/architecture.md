@@ -6,7 +6,7 @@ The application will be built as a **Modular Monolith** using a modern TypeScrip
 ## Technology Stack
 - **Frontend:** React, TypeScript, Redux Toolkit, RTK Query.
 - **Backend:** Node.js, Express, TypeScript, Zod (validation).
-- **Database:** MySQL, Prisma ORM.
+- **Database:** SQLite, Prisma ORM.
 
 ## Architecture Diagram
 ```mermaid

@@ -36,7 +36,13 @@ app.get('/health/ready', (req: Request, res: Response) => {
   res.status(200).json({ status: 'READY' });
 });
 
+import authRouter from './routes/auth';
+import employeeRouter from './routes/employees';
+
 // Catch-all error handler
+app.use('/api/auth', authRouter);
+app.use('/api/employees', employeeRouter);
+
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   req.log.error(err);
   res.status(500).json({ error: 'Internal Server Error' });

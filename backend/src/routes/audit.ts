@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import asyncHandler from 'express-async-handler';
+import { asyncHandler } from '../common/async-handler';
 import { z } from 'zod';
 import prisma from '../db';
 import { authenticate } from '../middleware/auth';

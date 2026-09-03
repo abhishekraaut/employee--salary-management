@@ -1,26 +1,21 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { UnauthorizedError } from '../common/errors';
+import { verifyToken } from '../services/auth.service';
 
 export const authenticate = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized' });
+    return res.status(401).json({ status: 'error', code: 401, message: 'Unauthorized' });
   }
 
-  const token = authHeader.split(' ')[1];
+  const token = authHeader.slice('Bearer '.length).trim();
+  if (!token) return res.status(401).json({ status: 'error', code: 401, message: 'Unauthorized' });
   try {
-    const secret = process.env.JWT_SECRET || 'supersecret_for_assessment';
-    const decoded = jwt.verify(token, secret) as any;
-    req.user = {
-      id: decoded.id,
-      tenantId: decoded.tenantId,
-      email: decoded.email
-    };
+    req.user = verifyToken(token);
     next();
   } catch (err) {
-    if (req.log) {
-      req.log.warn({ err }, 'JWT Verification failed');
-    }
-    res.status(401).json({ error: 'Unauthorized' });
+    req.log!.warn({ err }, 'JWT Verification failed');
+    if (err instanceof UnauthorizedError) return res.status(401).json({ status: 'error', code: 401, message: err.message });
+    return res.status(401).json({ status: 'error', code: 401, message: 'Unauthorized' });
   }
 };

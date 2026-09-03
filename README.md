@@ -22,7 +22,7 @@ Create a `.env` file in the `backend` directory based on `.env.example`.
 cd backend
 cp .env.example .env
 ```
-*(Ensure `DATABASE_URL` is set to `mysql://root:rootpassword@127.0.0.1:3307/acme_hr` for local dev)*
+*(Ensure `DATABASE_URL` is set to `mysql://root:rootpassword@127.0.0.1:3306/acme_hr` for local dev)*
 
 ### 3. Start Database
 ```bash
@@ -40,39 +40,19 @@ npx prisma migrate dev --name init
 ```bash
 npm run seed
 ```
-*This deterministically inserts exactly 10,000 employees distributed across two logical tenants (ACME and Globex).*
 
 ### 6. Run Tests
 ```bash
 npm test
 ```
-*Executes the Vitest suite (including integration tests running directly against the MySQL instance, verifying strict tenant isolation).*
 
-### 7. Code Quality
+### 7. Start the Server
 ```bash
-npm run typecheck
-npx eslint src
-```
-
-### 8. Start the Server
-```bash
-npm start
+npm run dev
 ```
 *Check `/health/live` and `/health/ready` for service state.*
 
-## Architecture Decisions & Constraints
-- **Logical Multi-Tenancy:** The application enforces strict row-level isolation via the `tenantId` extracted exclusively from the JWT session.
-- **Append-only History:** Compensation updates create atomic pairs of `Compensation` and `AuditLog` records without ever overwriting historical salary data.
-- **Analytics Performance:** Aggregations (e.g., headcount, average salary) run fully within MySQL via `queryRawUnsafe` window functions.
-- **Monetary Precision:** The `Compensation.amount` field utilizes a robust `Decimal(10, 2)` column in MySQL.
-
 ## Documentation
-- [Requirements Document](docs/requirements.md)
-- [Architecture](docs/architecture.md)
-- [Data Model](docs/data-model.md)
-- [API Contract](docs/api-contract.md)
-- [Testing Strategy](docs/testing.md)
-- [Observability](docs/observability.md)
-- [Performance](docs/performance.md)
-- [Trade-offs & Decisions](docs/tradeoffs.md)
-- [AI Development Context](docs/ai/backend-workflow.md)
+- Backend-specific setup: [backend/README.md](backend/README.md)
+- Architecture: [docs/architecture.md](docs/architecture.md)
+- API contract: [docs/api-contract.md](docs/api-contract.md)

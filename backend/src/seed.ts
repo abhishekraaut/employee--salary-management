@@ -1,4 +1,4 @@
-import prisma from './db';
+import prisma from './config/database';
 import { hash } from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 

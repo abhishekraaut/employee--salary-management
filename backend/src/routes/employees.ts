@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
-import asyncHandler from 'express-async-handler';
+import { Compensation, Employee, Prisma } from '@prisma/client';
+import { asyncHandler } from '../common/async-handler';
 import { z } from 'zod';
 import prisma from '../db';
 import { authenticate } from '../middleware/auth';
@@ -79,7 +80,7 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
     })
   ]);
 
-  const data = employees.map(emp => ({
+  const data = employees.map((emp: Employee & { compensations: Compensation[] }) => ({
     id: emp.id,
     firstName: emp.firstName,
     lastName: emp.lastName,
@@ -177,7 +178,7 @@ router.get('/:id/compensations', asyncHandler(async (req: Request, res: Response
     orderBy: { effectiveDate: 'desc' }
   });
 
-  res.json({ data: compensations.map(c => ({...c, amount: Number(c.amount)})) });
+  res.json({ data: compensations.map((c: Compensation) => ({...c, amount: Number(c.amount)})) });
 }));
 
 /**
@@ -248,7 +249,7 @@ router.post('/:id/compensations', asyncHandler(async (req: Request, res: Respons
   const previousCompId = employee.compensations[0]?.id || null;
 
   // Use a transaction to ensure both compensation and audit log are created atomically
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const newCompensation = await tx.compensation.create({
       data: {
         tenantId,

@@ -30,8 +30,8 @@ async function main() {
   
   await prisma.user.createMany({
     data: [
-      { id: acmeHrId, tenantId: acmeId, email: 'hr@acme.com', passwordHash, name: 'Alice HR' },
-      { id: globexHrId, tenantId: globexId, email: 'hr@globex.com', passwordHash, name: 'Bob Globex' }
+      { id: acmeHrId, tenantId: acmeId, email: 'abhishek.hr@abhitech.com', passwordHash, name: 'Abhishek Raut' },
+      { id: globexHrId, tenantId: globexId, email: 'hr@globex.com', passwordHash, name: 'Susmita HR' }
     ]
   });
 

@@ -18,7 +18,9 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     };
     next();
   } catch (err) {
-    req.log.warn({ err }, 'JWT Verification failed');
-    return res.status(401).json({ error: 'Unauthorized' });
+    if (req.log) {
+      req.log.warn({ err }, 'JWT Verification failed');
+    }
+    res.status(401).json({ error: 'Unauthorized' });
   }
 };

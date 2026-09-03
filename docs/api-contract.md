@@ -3,7 +3,7 @@
 ## Authentication
 ### `POST /api/auth/login`
 - **Purpose:** Authenticate user and return JWT.
-- **Request Body:** `{ "email": "hr@acme.com", "password": "password123" }`
+- **Request Body:** `{ "email": "abhishek.hr@abhitech.com", "password": "abhi@123" }`
 - **Response:** `200 OK`, `{ "token": "jwt...", "user": { "id": "...", "name": "..." } }`
 
 ## Employees
@@ -15,6 +15,8 @@
   - `search` (optional)
   - `department` (optional)
   - `country` (optional)
+  - `sortBy` (optional, enum: 'firstName' | 'lastName' | 'hireDate' | 'createdAt', default: 'createdAt')
+  - `sortOrder` (optional, enum: 'asc' | 'desc', default: 'desc')
 - **Response:** `200 OK`, `{ "data": [{ "id": "...", "firstName": "...", "currentSalary": 100000, ... }], "meta": { "total": 10000, "page": 1, "totalPages": 200 } }`
 
 ### `GET /api/employees/:id`
@@ -35,7 +37,7 @@
 ### `GET /api/analytics/compensation-summary`
 - **Purpose:** Fetch aggregated salary data by department and country.
 - **Query Params:** `groupBy` (enum: 'department' | 'country')
-- **Response:** `200 OK`, `{ "data": [{ "group": "Engineering", "averageSalary": 120000, "headcount": 150 }, ...] }`
+- **Response:** `200 OK`, `{ "data": [{ "group": "Engineering", "averageSalary": 120000, "totalPayroll": 18000000, "headcount": 150, "currency": "USD" }, ...] }`
 
 ## Error Handling
 - `400 Bad Request`: Validation errors (Zod payload).

@@ -6,8 +6,8 @@ import { setCredentials } from './authSlice';
 import { Building2 } from 'lucide-react';
 
 export function Login() {
-  const [email, setEmail] = useState('hr@acme.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('abhishek.hr@abhitech.com');
+  const [password, setPassword] = useState('abhi@123');
   const [login, { isLoading, error }] = useLoginMutation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ export function Login() {
           <Building2 className="h-12 w-12 text-blue-600" />
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900">
-          Sign in to ACME HR
+          Sign in to AbhiTech HR
         </h2>
       </div>
 

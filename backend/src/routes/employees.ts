@@ -27,6 +27,20 @@ const compensationSchema = z.object({
   reason: z.string().optional()
 });
 
+/**
+ * @swagger
+ * /api/employees:
+ *   get:
+ *     summary: Get all employees
+ *     tags: [Employees]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of employees
+ *       401:
+ *         description: Unauthorized
+ */
 router.get('/', asyncHandler(async (req: Request, res: Response) => {
   const tenantId = req.user!.tenantId;
   const parsedQuery = querySchema.safeParse(req.query);
@@ -85,6 +99,26 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
   });
 }));
 
+/**
+ * @swagger
+ * /api/employees/{id}:
+ *   get:
+ *     summary: Get employee by ID
+ *     tags: [Employees]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Employee details
+ *       404:
+ *         description: Not found
+ */
 router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
   const tenantId = req.user!.tenantId;
   const id = req.params.id as string;
@@ -100,6 +134,26 @@ router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
   res.json(employee);
 }));
 
+/**
+ * @swagger
+ * /api/employees/{id}/compensations:
+ *   get:
+ *     summary: Get employee compensations
+ *     tags: [Employees]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Employee compensations
+ *       404:
+ *         description: Not found
+ */
 router.get('/:id/compensations', asyncHandler(async (req: Request, res: Response) => {
   const tenantId = req.user!.tenantId;
   const id = req.params.id as string;
@@ -114,6 +168,10 @@ router.get('/:id/compensations', asyncHandler(async (req: Request, res: Response
     return;
   }
 
+  if (req.log) {
+    req.log.info({ employeeId: id, action: 'deleted' }, 'Employee deleted');
+  }
+
   const compensations = await prisma.compensation.findMany({
     where: { employeeId: id, tenantId },
     orderBy: { effectiveDate: 'desc' }
@@ -122,6 +180,45 @@ router.get('/:id/compensations', asyncHandler(async (req: Request, res: Response
   res.json({ data: compensations.map(c => ({...c, amount: Number(c.amount)})) });
 }));
 
+/**
+ * @swagger
+ * /api/employees/{id}/compensations:
+ *   post:
+ *     summary: Add employee compensation
+ *     tags: [Employees]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - amount
+ *               - effectiveDate
+ *             properties:
+ *               amount:
+ *                 type: number
+ *               currency:
+ *                 type: string
+ *               effectiveDate:
+ *                 type: string
+ *                 format: date-time
+ *               reason:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Compensation added
+ *       404:
+ *         description: Not found
+ */
 router.post('/:id/compensations', asyncHandler(async (req: Request, res: Response) => {
   const tenantId = req.user!.tenantId;
   const id = req.params.id as string;
@@ -179,13 +276,15 @@ router.post('/:id/compensations', asyncHandler(async (req: Request, res: Respons
     return { newCompensation, audit };
   });
 
-  req.log.info({
-    msg: 'Salary updated successfully',
-    tenantId,
-    employeeId: employee.id,
-    amount: result.newCompensation.amount,
-    actor: req.user!.id
-  });
+  if (req.log) {
+    req.log.info({
+      msg: 'Salary updated successfully',
+      tenantId,
+      employeeId: employee.id,
+      amount: result.newCompensation.amount,
+      actor: req.user!.id
+    });
+  }
 
   res.status(201).json({ ...result.newCompensation, amount: Number(result.newCompensation.amount) });
 }));

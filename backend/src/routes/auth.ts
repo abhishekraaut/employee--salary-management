@@ -1,32 +1,23 @@
 import express from 'express';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import prisma from '../db';
+import { z } from 'zod';
+import { BadRequestError } from '../common/errors';
+import { sendSuccess } from '../common/response';
+import { login } from '../services/auth.service';
 
 const router = express.Router();
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1)
+});
 
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email and password required' });
+router.post('/login', async (req, res, next) => {
+  try {
+    const input = loginSchema.parse(req.body);
+    sendSuccess(res, await login(input.email, input.password), 'Login successful');
+  } catch (error) {
+    if (error instanceof z.ZodError) return next(new BadRequestError('Invalid email or password'));
+    next(error);
   }
-
-  const user = await prisma.user.findFirst({
-    where: { email }
-  });
-
-  if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
-    return res.status(401).json({ error: 'Invalid credentials' });
-  }
-
-  const secret = process.env.JWT_SECRET || 'supersecret_for_assessment';
-  const token = jwt.sign(
-    { id: user.id, tenantId: user.tenantId, email: user.email },
-    secret,
-    { expiresIn: '1d' }
-  );
-
-  res.json({ token, user: { id: user.id, name: user.name, tenantId: user.tenantId } });
 });
 
 export default router;

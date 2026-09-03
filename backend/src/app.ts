@@ -3,8 +3,13 @@ import cors from 'cors';
 import pinoHttp from 'pino-http';
 import pino from 'pino';
 import { v4 as uuidv4 } from 'uuid';
+import { env } from './config/env';
+import { checkDatabase } from './config/database';
+import { errorMiddleware } from './middleware/error';
+import { notFoundMiddleware } from './middleware/not-found';
+import { openApiDocument } from './config/openapi';
 
-const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
+const logger = pino({ level: env.LOG_LEVEL });
 
 export const app: Express = express();
 
@@ -28,13 +33,18 @@ app.use(pinoHttp({
 
 // Health probes
 app.get('/health/live', (req: Request, res: Response) => {
-  res.status(200).json({ status: 'OK' });
+  res.status(200).json({ status: 'success', message: 'Server is healthy' });
 });
 
-app.get('/health/ready', (req: Request, res: Response) => {
-  // We will add DB check here later
-  res.status(200).json({ status: 'READY' });
+app.get('/health/ready', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await checkDatabase();
+    res.status(200).json({ status: 'success', message: 'Database is ready' });
+  } catch (error) {
+    next(error);
+  }
 });
+app.get('/openapi.json', (_req, res) => res.json(openApiDocument));
 
 import authRouter from './routes/auth';
 import employeeRouter from './routes/employees';
@@ -44,8 +54,5 @@ app.use('/api/auth', authRouter);
 app.use('/api/employees', employeeRouter);
 app.use('/api/analytics', analyticsRouter);
 
-// Catch-all error handler
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  req.log.error(err);
-  res.status(500).json({ error: 'Internal Server Error' });
-});
+app.use(notFoundMiddleware);
+app.use(errorMiddleware);

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useGetAuditLogsQuery } from './auditApi';
 import { ChevronLeft, ChevronRight, Activity } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
@@ -14,7 +14,7 @@ export function AuditLog() {
           <Activity className="w-5 h-5 text-blue-600" />
           <h3 className="text-lg font-medium text-slate-900">System Audit Log</h3>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-600">
             <thead className="bg-slate-50 text-slate-900 border-b border-slate-200 font-medium">

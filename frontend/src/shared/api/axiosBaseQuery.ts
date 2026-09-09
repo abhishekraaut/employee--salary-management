@@ -11,6 +11,19 @@ export interface AxiosBaseQueryArgs {
   headers?: AxiosRequestConfig['headers'];
 }
 
+export interface ApiErrorResponse {
+  status?: string;
+  code?: number;
+  message?: string;
+}
+
+export function getApiErrorMessage(error: unknown, fallback: string): string {
+  const responseData = (error as { data?: ApiErrorResponse | string })?.data;
+  if (typeof responseData === 'object' && responseData?.message) return responseData.message;
+  if (typeof responseData === 'string') return responseData;
+  return fallback;
+}
+
 export const axiosBaseQuery =
   (): BaseQueryFn<
     AxiosBaseQueryArgs | string, // Can pass full args or just a URL string for simple GETs
@@ -19,7 +32,7 @@ export const axiosBaseQuery =
   > =>
   async (requestOpts) => {
     try {
-      const config: AxiosRequestConfig = typeof requestOpts === 'string' 
+      const config: AxiosRequestConfig = typeof requestOpts === 'string'
         ? { url: requestOpts, method: 'GET' }
         : { ...requestOpts, data: requestOpts.data || requestOpts.body };
 

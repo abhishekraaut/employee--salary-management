@@ -1,4 +1,3 @@
-import { useState, useMemo } from 'react';
 import { useGetCompensationSummaryQuery } from './analyticsApi';
 import { formatCurrency } from '../../utils/formatters';
 

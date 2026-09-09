@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useGetCompensationSummaryQuery } from '../analytics/analyticsApi';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { formatCurrency } from '../../utils/formatters';
@@ -53,7 +53,7 @@ export function Dashboard() {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                 <XAxis dataKey="group" axisLine={false} tickLine={false} />
                 <YAxis axisLine={false} tickLine={false} />
-                <Tooltip 
+                <Tooltip
                   cursor={{ fill: '#f1f5f9' }}
                   contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 />

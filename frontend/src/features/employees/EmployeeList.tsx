@@ -1,22 +1,27 @@
-import { useState, useMemo } from 'react';
+import { useDeferredValue, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGetEmployeesQuery } from './employeesApi';
 import { Search, Filter, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
 import { formatCurrency } from '../../utils/formatters';
+
+type EmployeeSortField = 'firstName' | 'lastName' | 'hireDate' | 'createdAt';
 
 export function EmployeeList() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [department, setDepartment] = useState('');
-  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortBy, setSortBy] = useState<EmployeeSortField>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [country, setCountry] = useState('');
+  const deferredSearch = useDeferredValue(search);
 
   const { data, isLoading, isFetching, isError } = useGetEmployeesQuery({
     page,
     limit: 10,
-    search: search || undefined,
+    search: deferredSearch || undefined,
     department: department || undefined,
+    country: country || undefined,
     sortBy,
     sortOrder
   });
@@ -26,7 +31,7 @@ export function EmployeeList() {
     setPage(1); // Reset to first page
   };
 
-  const handleSort = (field: string) => {
+  const handleSort = (field: EmployeeSortField) => {
     if (sortBy === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
@@ -50,7 +55,7 @@ export function EmployeeList() {
             className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Filter className="h-5 w-5 text-slate-400" />
           <select
             value={department}
@@ -64,6 +69,19 @@ export function EmployeeList() {
             <option value="Marketing">Marketing</option>
             <option value="HR">HR</option>
             <option value="Finance">Finance</option>
+          </select>
+          <select
+            value={country}
+            onChange={(e) => { setCountry(e.target.value); setPage(1); }}
+            className="border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Filter by country"
+          >
+            <option value="">All Countries</option>
+            <option value="USA">USA</option>
+            <option value="UK">UK</option>
+            <option value="India">India</option>
+            <option value="Canada">Canada</option>
+            <option value="Germany">Germany</option>
           </select>
         </div>
       </div>
@@ -103,8 +121,8 @@ export function EmployeeList() {
                 </tr>
               ) : (
                 data?.data.map((employee) => (
-                  <tr 
-                    key={employee.id} 
+                  <tr
+                    key={employee.id}
                     onClick={() => navigate(`/employees/${employee.id}`)}
                     className="hover:bg-slate-50 cursor-pointer transition-colors group"
                   >
@@ -114,7 +132,7 @@ export function EmployeeList() {
                     <td className="px-6 py-4">{employee.department}</td>
                     <td className="px-6 py-4">{employee.country}</td>
                     <td className="px-6 py-4 font-medium">
-                      {employee.currentSalary ? formatCurrency(employee.currentSalary, employee.currency) : '-'}
+                      {employee.currentSalary != null ? formatCurrency(employee.currentSalary, employee.currency) : '-'}
                     </td>
                   </tr>
                 ))

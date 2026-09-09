@@ -16,6 +16,8 @@ export function Layout() {
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
     { name: 'Audit Log', href: '/audit', icon: Activity },
   ];
+  const pageTitle = location.pathname.split('/')[1]?.replace('-', ' ') || 'Dashboard';
+  const formattedPageTitle = pageTitle.replace(/\b\w/g, character => character.toUpperCase());
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -27,7 +29,7 @@ export function Layout() {
             <Menu className="w-5 h-5" />
           </button>
         </div>
-        
+
         <nav className="flex-1 space-y-1 p-2">
           {navigation.map((item) => {
             const isActive = location.pathname.startsWith(item.href);
@@ -60,8 +62,8 @@ export function Layout() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="h-16 bg-white border-b border-slate-200 flex items-center px-6">
-          <h1 className="text-xl font-semibold text-slate-800 capitalize">
-            {location.pathname.split('/')[1]?.replace('-', ' ') || 'Dashboard'}
+          <h1 className="text-xl font-semibold text-slate-800">
+            {formattedPageTitle}
           </h1>
         </header>
         <main className="flex-1 overflow-auto p-6">

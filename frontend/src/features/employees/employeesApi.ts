@@ -27,7 +27,7 @@ export interface GetEmployeesArgs {
   search?: string;
   department?: string;
   country?: string;
-  sortBy?: string;
+  sortBy?: 'firstName' | 'lastName' | 'hireDate' | 'createdAt';
   sortOrder?: 'asc' | 'desc';
 }
 
@@ -43,7 +43,7 @@ export const employeesApi = apiSlice.injectEndpoints({
         if (arg.country) params.append('country', arg.country);
         if (arg.sortBy) params.append('sortBy', arg.sortBy);
         if (arg.sortOrder) params.append('sortOrder', arg.sortOrder);
-        
+
         return `/employees?${params.toString()}`;
       },
       providesTags: (result) =>

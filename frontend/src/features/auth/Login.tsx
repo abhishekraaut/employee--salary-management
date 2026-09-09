@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLoginMutation } from './authApi';
 import { setCredentials } from './authSlice';
 import { Building2 } from 'lucide-react';
+import { getApiErrorMessage } from '../../shared/api/axiosBaseQuery';
 
 export function Login() {
   const [email, setEmail] = useState('abhishek.hr@abhitech.com');
@@ -16,10 +17,10 @@ export function Login() {
     e.preventDefault();
     try {
       const result = await login({ email, password }).unwrap();
-      dispatch(setCredentials({ user: result.user, token: result.token }));
+      dispatch(setCredentials({ user: result.data.user, token: result.data.token }));
       navigate('/dashboard');
-    } catch (err) {
-      // Error handled by RTK Query / UI
+    } catch {
+      // RTK Query exposes the normalized error through `error`.
     }
   };
 
@@ -75,7 +76,7 @@ export function Login() {
 
             {error ? (
               <div className="text-red-600 text-sm p-3 bg-red-50 rounded-md">
-                {String((error as any)?.data?.error || 'Failed to login')}
+                {getApiErrorMessage(error, 'Failed to login')}
               </div>
             ) : null}
 

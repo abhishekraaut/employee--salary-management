@@ -4,6 +4,7 @@ import { useGetEmployeeByIdQuery } from './employeesApi';
 import { useGetCompensationsQuery, useCreateCompensationMutation } from '../compensation/compensationApi';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { ArrowLeft, Plus, History } from 'lucide-react';
+import { getApiErrorMessage } from '../../shared/api/axiosBaseQuery';
 
 export function EmployeeDetails() {
   const { id } = useParams<{ id: string }>();
@@ -12,13 +13,13 @@ export function EmployeeDetails() {
 
   const { data: employee, isLoading, isError } = useGetEmployeeByIdQuery(id!);
   const { data: history, isLoading: historyLoading } = useGetCompensationsQuery(id!);
-  
+
   if (isLoading) return <div className="p-6">Loading employee...</div>;
   if (isError || !employee) return <div className="p-6 text-red-500">Failed to load employee details.</div>;
 
   return (
     <div className="space-y-6">
-      <button 
+      <button
         onClick={() => navigate('/employees')}
         className="flex items-center text-slate-500 hover:text-slate-900 transition-colors"
       >
@@ -39,7 +40,7 @@ export function EmployeeDetails() {
         <div className="text-right">
           <p className="text-sm text-slate-500 font-medium">Current Salary</p>
           <p className="text-3xl font-bold text-blue-600">
-            {employee.currentSalary ? formatCurrency(employee.currentSalary, employee.currency) : '-'}
+            {employee.currentSalary != null ? formatCurrency(employee.currentSalary, employee.currency) : '-'}
           </p>
         </div>
       </div>
@@ -51,7 +52,7 @@ export function EmployeeDetails() {
             <History className="w-5 h-5 text-slate-500" />
             Salary History
           </h3>
-          <button 
+          <button
             onClick={() => setShowModal(true)}
             className="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           >
@@ -59,7 +60,7 @@ export function EmployeeDetails() {
             Update Salary
           </button>
         </div>
-        
+
         <div className="p-6">
           {historyLoading ? (
             <p className="text-slate-500">Loading history...</p>
@@ -109,8 +110,8 @@ function UpdateSalaryModal({ employeeId, defaultCurrency, onClose }: { employeeI
         reason: reason || undefined
       }).unwrap();
       onClose();
-    } catch (err) {
-      // Error is handled by UI
+    } catch {
+      // RTK Query exposes the normalized error through `error`.
     }
   };
 
@@ -137,7 +138,7 @@ function UpdateSalaryModal({ employeeId, defaultCurrency, onClose }: { employeeI
               />
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="currency" className="block text-sm font-medium text-slate-700">Currency</label>
@@ -180,7 +181,7 @@ function UpdateSalaryModal({ employeeId, defaultCurrency, onClose }: { employeeI
 
           {error ? (
             <div className="text-red-600 text-sm p-3 bg-red-50 rounded-md">
-              {String((error as any)?.data?.error || 'Failed to update salary')}
+              {getApiErrorMessage(error, 'Failed to update salary')}
             </div>
           ) : null}
 

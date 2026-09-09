@@ -28,11 +28,29 @@ export async function login(email: string, password: string) {
 }
 
 export function verifyToken(token: string): AuthUser {
-  const decoded = jwt.verify(token, env.JWT_SECRET, { algorithms: ['HS256'] });
+  let decoded: string | JwtPayload;
+  try {
+    decoded = jwt.verify(token, env.JWT_SECRET, { algorithms: ['HS256'] });
+  } catch {
+    throw new UnauthorizedError();
+  }
   if (!decoded || typeof decoded === 'string') throw new UnauthorizedError();
   const payload = decoded as JwtPayload;
   if (typeof payload.id !== 'string' || typeof payload.tenantId !== 'string' || typeof payload.email !== 'string') {
     throw new UnauthorizedError();
   }
   return { id: payload.id, tenantId: payload.tenantId, email: payload.email };
+}
+
+export async function getAuthenticatedUser(user: AuthUser): Promise<AuthUser> {
+  const databaseUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { id: true, tenantId: true, email: true }
+  });
+
+  if (!databaseUser || databaseUser.tenantId !== user.tenantId || databaseUser.email !== user.email) {
+    throw new UnauthorizedError();
+  }
+
+  return databaseUser;
 }

@@ -7,7 +7,8 @@ const environmentSchema = z.object({
   JWT_EXPIRES_IN: z.string().default('1d'),
   PORT: z.coerce.number().int().positive().default(3000),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-  LOG_LEVEL: z.string().default('info')
+  LOG_LEVEL: z.string().default('info'),
+  CORS_ORIGINS: z.string().default('http://localhost:3000,http://localhost:5173,http://localhost:8080')
 });
 
 export const env = environmentSchema.parse(process.env);

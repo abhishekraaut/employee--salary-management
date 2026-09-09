@@ -73,7 +73,8 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
       orderBy: { [sortBy]: sortOrder },
       include: {
         compensations: {
-          orderBy: { effectiveDate: 'desc' },
+          where: { effectiveDate: { lte: new Date() } },
+          orderBy: [{ effectiveDate: 'desc' }, { createdAt: 'desc' }],
           take: 1
         }
       }
@@ -158,7 +159,7 @@ router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
 router.get('/:id/compensations', asyncHandler(async (req: Request, res: Response) => {
   const tenantId = req.user!.tenantId;
   const id = req.params.id as string;
-  
+
   // Verify ownership
   const employee = await prisma.employee.findFirst({
     where: { id, tenantId }
@@ -169,9 +170,7 @@ router.get('/:id/compensations', asyncHandler(async (req: Request, res: Response
     return;
   }
 
-  if (req.log) {
-    req.log.info({ employeeId: id, action: 'deleted' }, 'Employee deleted');
-  }
+  req.log?.info({ employeeId: id, action: 'read' }, 'Compensation history read');
 
   const compensations = await prisma.compensation.findMany({
     where: { employeeId: id, tenantId },
@@ -223,13 +222,14 @@ router.get('/:id/compensations', asyncHandler(async (req: Request, res: Response
 router.post('/:id/compensations', asyncHandler(async (req: Request, res: Response) => {
   const tenantId = req.user!.tenantId;
   const id = req.params.id as string;
-  
+
   // Verify ownership and get current comp
   const employee = await prisma.employee.findFirst({
     where: { id, tenantId },
     include: {
       compensations: {
-        orderBy: { effectiveDate: 'desc' },
+        where: { effectiveDate: { lte: new Date() } },
+        orderBy: [{ effectiveDate: 'desc' }, { createdAt: 'desc' }],
         take: 1
       }
     }

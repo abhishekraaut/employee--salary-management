@@ -32,15 +32,15 @@ router.get('/compensation-summary', asyncHandler(async (req: Request, res: Respo
 
   const query = `
     WITH LatestComp AS (
-      SELECT 
+      SELECT
         c.employeeId,
         c.amount,
         c.currency,
         ROW_NUMBER() OVER(PARTITION BY c.employeeId ORDER BY c.effectiveDate DESC, c.createdAt DESC) as rn
       FROM Compensation c
-      WHERE c.tenantId = ?
+      WHERE c.tenantId = ? AND c.effectiveDate <= CURRENT_TIMESTAMP
     )
-    SELECT 
+    SELECT
       e.${groupBy} as \`group\`,
       COUNT(e.id) as headcount,
       SUM(lc.amount) as totalPayroll,

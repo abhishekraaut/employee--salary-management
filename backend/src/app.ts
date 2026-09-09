@@ -7,17 +7,16 @@ import { env } from './config/env';
 import { checkDatabase } from './config/database';
 import { errorMiddleware } from './middleware/error';
 import { notFoundMiddleware } from './middleware/not-found';
-import { openApiDocument } from './config/openapi';
-import { setupSwagger } from './swagger';
+import { setupSwagger, swaggerSpec } from './swagger';
+
+import authRouter from './routes/auth';
+import employeeRouter from './routes/employees';
+import analyticsRouter from './routes/analytics';
 import auditRouter from './routes/audit';
 
 const logger = pino({ level: env.LOG_LEVEL });
 
 export const app: Express = express();
-
-app.use(cors());
-app.use(express.json() as RequestHandler);
-setupSwagger(app);
 
 // Request IDs
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -34,6 +33,16 @@ app.use(pinoHttp({
   }
 }));
 
+const allowedOrigins = env.CORS_ORIGINS.split(',').map(origin => origin.trim()).filter(Boolean);
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error('Origin is not allowed by CORS'));
+  }
+}));
+app.use(express.json() as RequestHandler);
+setupSwagger(app);
+
 // Health probes
 app.get('/health/live', (req: Request, res: Response) => {
   res.status(200).json({ status: 'success', message: 'Server is healthy' });
@@ -47,11 +56,8 @@ app.get('/health/ready', async (req: Request, res: Response, next: NextFunction)
     next(error);
   }
 });
-app.get('/openapi.json', (_req, res) => res.json(openApiDocument));
 
-import authRouter from './routes/auth';
-import employeeRouter from './routes/employees';
-import analyticsRouter from './routes/analytics';
+app.get('/openapi.json', (_req, res) => res.json(swaggerSpec));
 
 app.use('/api/auth', authRouter);
 app.use('/api/employees', employeeRouter);

@@ -32,7 +32,8 @@ model User {
   compensationsCreated Compensation[]
   auditLogsCreated     AuditLog[]
 
-  @@unique([tenantId, email])
+  @@unique([email])
+  @@unique([tenantId, id])
 }
 
 model Employee {
@@ -53,6 +54,7 @@ model Employee {
   auditLogs     AuditLog[]
 
   @@unique([tenantId, email])
+  @@unique([tenantId, id])
   @@index([tenantId, lastName, firstName])
   @@index([tenantId, department])
   @@index([tenantId, country])
@@ -69,14 +71,15 @@ model Compensation {
   createdBy     String
 
   tenant        Tenant   @relation(fields: [tenantId], references: [id])
-  employee      Employee @relation(fields: [employeeId], references: [id])
-  creator       User     @relation(fields: [createdBy], references: [id])
+  employee      Employee @relation(fields: [tenantId, employeeId], references: [tenantId, id])
+  creator       User     @relation(fields: [tenantId, createdBy], references: [tenantId, id])
 
   // Relations for AuditLog
   auditLogsAsPrevious AuditLog[] @relation("PreviousCompensation")
   auditLogsAsNew      AuditLog[] @relation("NewCompensation")
 
   @@index([tenantId, employeeId, effectiveDate(sort: Desc)])
+  @@unique([tenantId, id])
 }
 
 model AuditLog {
@@ -92,10 +95,11 @@ model AuditLog {
   createdAt              DateTime @default(now())
 
   tenant               Tenant        @relation(fields: [tenantId], references: [id])
-  employee             Employee      @relation(fields: [employeeId], references: [id])
-  actor                User          @relation(fields: [actorId], references: [id])
-  previousCompensation Compensation? @relation("PreviousCompensation", fields: [previousCompensationId], references: [id])
-  newCompensation      Compensation  @relation("NewCompensation", fields: [newCompensationId], references: [id])
+  employee             Employee      @relation(fields: [tenantId, employeeId], references: [tenantId, id])
+  actor                User          @relation(fields: [tenantId, actorId], references: [tenantId, id])
+  previousCompensation Compensation? @relation("PreviousCompensation", fields: [tenantId, previousCompensationId], references: [tenantId, id], onDelete: Restrict)
+  newCompensation      Compensation  @relation("NewCompensation", fields: [tenantId, newCompensationId], references: [tenantId, id])
 
   @@index([tenantId, employeeId])
+  @@unique([tenantId, id])
 }

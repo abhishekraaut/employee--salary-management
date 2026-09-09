@@ -4,8 +4,14 @@ import { v4 as uuidv4 } from 'uuid';
 
 async function main() {
   console.log('Starting seed...');
-  
-  // Clean up if running repeatedly
+
+  const existingCount = await prisma.tenant.count();
+  if (existingCount > 0) {
+    console.log('Data is already seeded (tenants exist). Skipping seed process.');
+    return;
+  }
+
+  // Clean up if running repeatedly (for partial states)
   await prisma.auditLog.deleteMany();
   await prisma.compensation.deleteMany();
   await prisma.employee.deleteMany();
@@ -24,10 +30,10 @@ async function main() {
   });
 
   // 2. Create HR Managers
-  const passwordHash = await hash('password123', 10);
+  const passwordHash = await hash('abhi@123', 10);
   const acmeHrId = uuidv4();
   const globexHrId = uuidv4();
-  
+
   await prisma.user.createMany({
     data: [
       { id: acmeHrId, tenantId: acmeId, email: 'abhishek.hr@abhitech.com', passwordHash, name: 'Abhishek Raut' },
@@ -39,10 +45,10 @@ async function main() {
 
   const departments = ['Engineering', 'Sales', 'Marketing', 'HR', 'Finance'];
   const countries = ['USA', 'UK', 'India', 'Canada', 'Germany'];
-  
+
   const createEmployees = async (tenantId: string, count: number, hrId: string, startIndex: number) => {
     const chunkSize = 2000;
-    
+
     for (let i = 0; i < count; i += chunkSize) {
       const chunk = Math.min(chunkSize, count - i);
       const employees = [];
@@ -51,7 +57,7 @@ async function main() {
       for (let j = 0; j < chunk; j++) {
         const empId = uuidv4();
         const hireDate = new Date(Date.now() - (Math.random() * 5 * 365 * 24 * 60 * 60 * 1000));
-        
+
         employees.push({
           id: empId,
           tenantId,

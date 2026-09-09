@@ -1,4 +1,3 @@
-import { useState, useMemo } from 'react';
 import { render, screen } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { BrowserRouter } from 'react-router-dom';
@@ -15,7 +14,7 @@ describe('EmployeeList Component', () => {
         </BrowserRouter>
       </Provider>
     );
-    
+
     expect(screen.getByText(/Loading employees.../i)).toBeInTheDocument();
   });
 });

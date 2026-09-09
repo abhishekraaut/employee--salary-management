@@ -1,27 +1,41 @@
 import { test, expect } from '@playwright/test';
 
 test('Critical HR Workflow', async ({ page }) => {
-  // Open application
   await page.goto('http://localhost:5173/login');
-  
-  // Authenticate
+
   await page.fill('input[type="email"]', 'abhishek.hr@abhitech.com');
   await page.fill('input[type="password"]', 'abhi@123');
   await page.click('button[type="submit"]');
 
-  // Dashboard
   await expect(page.locator('h1')).toHaveText('Dashboard');
-  
-  // Navigate to employees
-  await page.click('text=Employees');
+
+  await page.getByRole('link', { name: 'Employees' }).click();
   await expect(page.locator('h1')).toHaveText('Employees');
 
-  // Search employee
-  await page.fill('input[placeholder="Search employees by name..."]', 'John');
-  
-  // Wait for network response implicitly or explicit text
-  await expect(page.locator('table')).toBeVisible();
+  await page.getByPlaceholder('Search employees by name...').fill('First0');
+  await expect(page.getByRole('row').nth(1)).toContainText('First0');
+  await page.getByRole('row').nth(1).click();
 
-  // We are not mocking backend in full E2E so we'll just check if basic UI is rendering
-  // A complete E2E would click an employee and update salary.
+  await expect(page.getByRole('heading', { level: 2 })).toContainText('First0');
+  await page.getByRole('button', { name: 'Update Salary' }).click();
+  await page.getByLabel('Amount').fill('123456');
+  await page.getByLabel('Reason (Optional)').fill('E2E salary review');
+
+  await Promise.all([
+    page.waitForResponse(response => response.url().includes('/compensations') && response.request().method() === 'POST'),
+    page.getByRole('button', { name: 'Save Update' }).click()
+  ]);
+
+  await expect(page.getByRole('dialog')).toBeHidden();
+  await page.getByRole('link', { name: 'Audit Log' }).click();
+  await expect(page.getByText('E2E salary review')).toBeVisible();
+});
+
+test('Login shows the backend validation message', async ({ page }) => {
+  await page.goto('http://localhost:5173/login');
+  await page.fill('input[type="email"]', 'abhishek.hr@abhitech.com');
+  await page.fill('input[type="password"]', 'wrong-password');
+  await page.getByRole('button', { name: 'Sign in' }).click();
+
+  await expect(page.getByText('Invalid credentials')).toBeVisible();
 });

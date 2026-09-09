@@ -35,7 +35,7 @@ describe('Tenant Isolation', () => {
 
   afterAll(async () => {
     await prisma.auditLog.deleteMany();
-    await prisma.compensation.deleteMany();
+    await prisma.auditLog.deleteMany(); await prisma.compensation.deleteMany();
     await prisma.employee.deleteMany();
     await prisma.user.deleteMany();
     await prisma.tenant.deleteMany();

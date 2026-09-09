@@ -10,7 +10,7 @@ describe('Employees API', () => {
   let userToken: string;
 
   beforeAll(async () => {
-    await prisma.compensation.deleteMany();
+    await prisma.auditLog.deleteMany(); await prisma.compensation.deleteMany();
     await prisma.employee.deleteMany();
     await prisma.user.deleteMany();
     await prisma.tenant.deleteMany();
@@ -34,7 +34,7 @@ describe('Employees API', () => {
   });
 
   afterAll(async () => {
-    await prisma.compensation.deleteMany();
+    await prisma.auditLog.deleteMany(); await prisma.compensation.deleteMany();
     await prisma.employee.deleteMany();
     await prisma.user.deleteMany();
     await prisma.tenant.deleteMany();

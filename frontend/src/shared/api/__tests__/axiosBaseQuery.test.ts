@@ -1,10 +1,22 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { getApiErrorMessage } from '../axiosBaseQuery';
 import { axiosBaseQuery } from '../axiosBaseQuery';
 import { axiosInstance } from '../axios';
 
 vi.mock('../axios', () => ({
   axiosInstance: vi.fn(),
 }));
+
+describe('getApiErrorMessage', () => {
+  it('uses the backend message field', () => {
+    expect(getApiErrorMessage({ data: { message: 'Invalid credentials' } }, 'Fallback')).toBe('Invalid credentials');
+  });
+
+  it('handles string and unknown errors safely', () => {
+    expect(getApiErrorMessage({ data: 'Network unavailable' }, 'Fallback')).toBe('Network unavailable');
+    expect(getApiErrorMessage(undefined, 'Fallback')).toBe('Fallback');
+  });
+});
 
 describe('axiosBaseQuery', () => {
   it('should return data on successful request', async () => {

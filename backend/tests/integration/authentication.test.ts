@@ -71,4 +71,34 @@ describe('Authentication', () => {
     const responses = await Promise.all(cases);
     expect(responses.every(response => response.status === 401)).toBe(true);
   });
+
+  it('rejects a validly signed token for a deleted user', async () => {
+    const staleToken = jwt.sign({ id: userId, tenantId, email }, env.JWT_SECRET);
+    await prisma.user.delete({ where: { id: userId } });
+
+    const response = await request(app)
+      .get('/api/employees')
+      .set('Authorization', `Bearer ${staleToken}`);
+
+    expect(response.status).toBe(401);
+
+    const replacement = await prisma.user.create({
+      data: {
+        id: userId,
+        tenantId,
+        email,
+        name: 'Authentication Test User',
+        passwordHash: await hash('correct-password', 12)
+      }
+    });
+    expect(replacement.id).toBe(userId);
+  });
+
+  it('allows configured frontend origins and rejects unknown origins', async () => {
+    const allowed = await request(app).get('/health/live').set('Origin', 'http://localhost:5173');
+    const blocked = await request(app).get('/health/live').set('Origin', 'https://untrusted.example');
+
+    expect(allowed.headers['access-control-allow-origin']).toBe('http://localhost:5173');
+    expect(blocked.headers['access-control-allow-origin']).toBeUndefined();
+  });
 });

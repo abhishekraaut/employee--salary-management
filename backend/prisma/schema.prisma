@@ -80,6 +80,7 @@ model Compensation {
 
   @@index([tenantId, employeeId, effectiveDate(sort: Desc)])
   @@unique([tenantId, id])
+  @@unique([tenantId, employeeId, effectiveDate])
 }
 
 model AuditLog {

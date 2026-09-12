@@ -130,4 +130,33 @@ describe('Compensation, audit, and analytics', () => {
     });
     expect(fraudulentAudit).toBeNull();
   });
+
+
+  it('rejects compensation creation if effectiveDate is duplicated for the employee', async () => {
+    const dupEmployee = await prisma.employee.create({
+      data: {
+        tenantId,
+        firstName: 'Dup',
+        lastName: 'Test',
+        email: `dup-${Date.now()}@test.com`,
+        department: 'Engineering',
+        country: 'USA',
+        hireDate: new Date('2020-01-01')
+      }
+    });
+
+    const response1 = await request(app)
+      .post(`/api/employees/${dupEmployee.id}/compensations`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ amount: 90000, currency: 'USD', effectiveDate: '2024-05-01', reason: 'Initial' });
+    expect(response1.status).toBe(201);
+
+    const response2 = await request(app)
+      .post(`/api/employees/${dupEmployee.id}/compensations`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ amount: 95000, currency: 'USD', effectiveDate: '2024-05-01', reason: 'Correction' });
+      
+    expect(response2.status).toBe(409);
+    expect(response2.body.error).toBe('A compensation record already exists for this effective date.');
+  });
 });

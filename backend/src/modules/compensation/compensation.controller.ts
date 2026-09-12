@@ -29,6 +29,9 @@ export class CompensationController {
       if (error instanceof NotFoundError) {
         return res.status(404).json({ error: 'Employee not found' });
       }
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+        return res.status(409).json({ error: 'A compensation record already exists for this effective date.' });
+      }
       next(error);
     }
   };
@@ -67,6 +70,9 @@ export class CompensationController {
     } catch (error) {
       if (error instanceof NotFoundError) {
         return res.status(404).json({ error: 'Employee not found' });
+      }
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+        return res.status(409).json({ error: 'A compensation record already exists for this effective date.' });
       }
       next(error);
     }

@@ -10,7 +10,7 @@ import { notFoundMiddleware } from './middleware/not-found';
 import { setupSwagger, swaggerSpec } from './swagger';
 
 import authRouter from './modules/auth/auth.route';
-import employeeRouter from './routes/employees';
+import employeeRouter from './modules/employees/employees.route';
 import analyticsRouter from './routes/analytics';
 import auditRouter from './routes/audit';
 

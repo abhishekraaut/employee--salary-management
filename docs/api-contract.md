@@ -9,7 +9,7 @@
 ## Employees
 ### `GET /api/employees`
 - **Purpose:** Fetch paginated list of employees with current salary.
-- **Query Params:** 
+- **Query Params:**
   - `page` (default: 1)
   - `limit` (default: 50)
   - `search` (optional)
@@ -42,6 +42,8 @@
 ## Error Handling
 - `400 Bad Request`: Validation errors (Zod payload).
 - `401 Unauthorized`: Missing or invalid JWT.
-- `403 Forbidden`: Attempting to access cross-tenant data.
+- `403 Forbidden`: Reserved for authenticated operations that are explicitly forbidden.
 - `404 Not Found`: Resource does not exist.
 - `500 Internal Server Error`: Generic fallback.
+
+Cross-tenant employee requests intentionally return `404 Not Found` rather than `403 Forbidden` so the API does not reveal whether a resource exists in another tenant. Current salary is the latest compensation whose `effectiveDate` is not in the future; ties are resolved by creation time.

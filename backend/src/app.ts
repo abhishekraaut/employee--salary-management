@@ -12,7 +12,7 @@ import { setupSwagger, swaggerSpec } from './swagger';
 import authRouter from './modules/auth/auth.route';
 import employeeRouter from './modules/employees/employees.route';
 import compensationRouter from './modules/compensation/compensation.route';
-import analyticsRouter from './routes/analytics';
+import analyticsRouter from './modules/analytics/analytics.route';
 import auditRouter from './routes/audit';
 
 const logger = pino({ level: env.LOG_LEVEL });

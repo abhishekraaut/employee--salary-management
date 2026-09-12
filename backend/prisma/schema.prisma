@@ -101,5 +101,6 @@ model AuditLog {
   newCompensation      Compensation  @relation("NewCompensation", fields: [tenantId, newCompensationId], references: [tenantId, id])
 
   @@index([tenantId, employeeId])
+  @@index([tenantId, createdAt])
   @@unique([tenantId, id])
 }

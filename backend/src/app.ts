@@ -13,7 +13,7 @@ import authRouter from './modules/auth/auth.route';
 import employeeRouter from './modules/employees/employees.route';
 import compensationRouter from './modules/compensation/compensation.route';
 import analyticsRouter from './modules/analytics/analytics.route';
-import auditRouter from './routes/audit';
+import auditRouter from './modules/audit/audit.route';
 
 const logger = pino({ level: env.LOG_LEVEL });
 

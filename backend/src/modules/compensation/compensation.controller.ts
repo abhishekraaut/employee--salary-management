@@ -16,7 +16,7 @@ export class CompensationController {
   getHistory = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const tenantId = req.user!.tenantId;
-      const employeeId = req.params.id; // Using exact previous URL pattern
+      const employeeId = req.params.id as string; // Using exact previous URL pattern
 
       const compensations = await compensationService.getHistory({ tenantId, employeeId });
       
@@ -36,7 +36,7 @@ export class CompensationController {
   addCompensation = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const tenantId = req.user!.tenantId;
-      const employeeId = req.params.id;
+      const employeeId = req.params.id as string;
 
       const parsedBody = compensationSchema.safeParse(req.body);
       if (!parsedBody.success) {

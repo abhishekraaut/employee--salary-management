@@ -61,4 +61,23 @@ describe('Tenant Isolation', () => {
       .send({ amount: 50000, currency: 'USD', effectiveDate: '2023-01-01' });
     expect(res.status).toBe(404);
   });
+
+  it('hides another tenant audit logs', async () => {
+    const userB = await prisma.user.create({
+      data: { tenantId: tenantBId, email: 'userb@test.com', name: 'B', passwordHash: 'hash' }
+    });
+    const userBToken = jwt.sign(
+      { id: userB.id, tenantId: tenantBId, email: userB.email },
+      process.env.JWT_SECRET || 'test-secret-that-is-at-least-32-characters-long'
+    );
+
+    await request(app).post(`/api/employees/${employeeBId}/compensations`)
+      .set('Authorization', `Bearer ${userBToken}`)
+      .send({ amount: 50000, currency: 'USD', effectiveDate: '2023-01-01', reason: 'Promotion' });
+
+    const res = await request(app).get('/api/audit')
+      .set('Authorization', `Bearer ${userAToken}`);
+    expect(res.status).toBe(200);
+    expect(res.body.data.length).toBe(0);
+  });
 });

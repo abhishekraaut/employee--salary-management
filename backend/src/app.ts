@@ -11,6 +11,7 @@ import { setupSwagger, swaggerSpec } from './swagger';
 
 import authRouter from './modules/auth/auth.route';
 import employeeRouter from './modules/employees/employees.route';
+import compensationRouter from './modules/compensation/compensation.route';
 import analyticsRouter from './routes/analytics';
 import auditRouter from './routes/audit';
 
@@ -61,6 +62,7 @@ app.get('/openapi.json', (_req, res) => res.json(swaggerSpec));
 
 app.use('/api/auth', authRouter);
 app.use('/api/employees', employeeRouter);
+app.use('/api/employees', compensationRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/audit', auditRouter);
 

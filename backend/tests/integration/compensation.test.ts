@@ -102,4 +102,32 @@ describe('Compensation, audit, and analytics', () => {
       currency: 'USD'
     }));
   });
+
+  it('rolls back compensation creation if audit log creation fails (Transaction Atomicity)', async () => {
+    // Attempt to add a compensation via the repository directly but with a fake actorId that violates foreign key
+    const { compensationRepository } = await import('../../src/modules/compensation/compensation.repository');
+    
+    const initialCompCount = await prisma.compensation.count({ where: { employeeId } });
+    
+    await expect(
+      compensationRepository.addCompensationWithAudit({
+        tenantId,
+        employeeId,
+        amount: 250000,
+        currency: 'USD',
+        effectiveDate: new Date('2025-01-01'),
+        actorId: 'invalid-actor-id-that-violates-fk',
+        reason: 'Attempted fraud'
+      })
+    ).rejects.toThrow(/Foreign key constraint/i);
+
+    // Verify database remains consistent
+    const finalCompCount = await prisma.compensation.count({ where: { employeeId } });
+    expect(finalCompCount).toBe(initialCompCount);
+    
+    const fraudulentAudit = await prisma.auditLog.findFirst({
+      where: { reason: 'Attempted fraud' }
+    });
+    expect(fraudulentAudit).toBeNull();
+  });
 });

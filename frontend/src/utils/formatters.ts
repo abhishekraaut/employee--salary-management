@@ -1,5 +1,6 @@
 export function formatCurrency(amount: number, currency: string = 'USD') {
-  return new Intl.NumberFormat('en-US', {
+  const locale = currency === 'INR' ? 'en-IN' : 'en-US';
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: currency,
     minimumFractionDigits: 0,
@@ -7,7 +8,7 @@ export function formatCurrency(amount: number, currency: string = 'USD') {
   }).format(amount);
 }
 
-export function formatDate(dateStr: string) {
+export function formatDate(dateStr: string | Date) {
   if (!dateStr) return '';
   return new Date(dateStr).toLocaleDateString('en-US', {
     year: 'numeric',

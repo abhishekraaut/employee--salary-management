@@ -21,8 +21,14 @@ export const uiSlice = createSlice({
     setSidebar: (state, action: PayloadAction<boolean>) => {
       state.sidebarOpen = action.payload;
     },
+    toggleTheme: (state) => {
+      state.theme = state.theme === 'light' ? 'dark' : 'light';
+    },
+    setTheme: (state, action: PayloadAction<'light' | 'dark'>) => {
+      state.theme = action.payload;
+    },
   },
 });
 
-export const { toggleSidebar, setSidebar } = uiSlice.actions;
+export const { toggleSidebar, setSidebar, toggleTheme, setTheme } = uiSlice.actions;
 export default uiSlice.reducer;

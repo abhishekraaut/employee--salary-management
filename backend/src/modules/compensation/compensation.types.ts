@@ -1,6 +1,6 @@
 export interface CompensationContext {
   tenantId: string;
-  employeeId: string;
+  employeeId: number;
 }
 
 export interface CreateCompensationParams extends CompensationContext {

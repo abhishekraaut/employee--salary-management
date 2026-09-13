@@ -10,7 +10,8 @@ export interface AuditRecord {
   employeeId: string;
   previousSalary: number | null;
   newSalary: number | null;
-  currency: string;
+  previousCurrency: string | null;
+  newCurrency: string | null;
 }
 
 export interface AuditResponse {

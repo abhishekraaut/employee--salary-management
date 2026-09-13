@@ -23,6 +23,17 @@ export class AnalyticsRepository {
           c.employeeId,
           c.amount,
           c.currency,
+          (CASE 
+            WHEN c.currency = 'INR' THEN c.amount
+            WHEN c.currency = 'USD' THEN c.amount * 83
+            WHEN c.currency = 'GBP' THEN c.amount * 105
+            WHEN c.currency = 'EUR' THEN c.amount * 90
+            WHEN c.currency = 'CAD' THEN c.amount * 61
+            WHEN c.currency = 'AUD' THEN c.amount * 54
+            WHEN c.currency = 'SGD' THEN c.amount * 62
+            WHEN c.currency = 'AED' THEN c.amount * 22.6
+            ELSE c.amount
+          END) as convertedAmount,
           ROW_NUMBER() OVER(PARTITION BY c.employeeId ORDER BY c.effectiveDate DESC, c.createdAt DESC) as rn
         FROM Compensation c
         WHERE c.tenantId = ? AND c.effectiveDate <= CURRENT_TIMESTAMP
@@ -30,13 +41,13 @@ export class AnalyticsRepository {
       SELECT
         e.${groupBy} as \`group\`,
         COUNT(e.id) as headcount,
-        SUM(lc.amount) as totalPayroll,
-        AVG(lc.amount) as averageSalary,
-        lc.currency
+        SUM(lc.convertedAmount) as totalPayroll,
+        AVG(lc.convertedAmount) as averageSalary,
+        'INR' as currency
       FROM Employee e
       LEFT JOIN LatestComp lc ON e.id = lc.employeeId AND lc.rn = 1
       WHERE e.tenantId = ?
-      GROUP BY e.${groupBy}, lc.currency
+      GROUP BY e.${groupBy}
       ORDER BY headcount DESC
     `;
 

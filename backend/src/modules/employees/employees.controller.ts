@@ -43,7 +43,7 @@ export class EmployeesController {
       const tenantId = req.user!.tenantId;
       const id = req.params.id as string;
 
-      const employee = await employeesService.getEmployeeById({ tenantId, employeeId: id });
+      const employee = await employeesService.getEmployeeById({ tenantId, employeeId: parseInt(id, 10) });
 
       if (!employee) {
         return res.status(404).json({ error: 'Employee not found' });

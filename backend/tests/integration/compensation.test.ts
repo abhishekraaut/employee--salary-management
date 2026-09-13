@@ -10,7 +10,7 @@ describe('Compensation, audit, and analytics', () => {
   let tenantId: string;
   let userId: string;
   let token: string;
-  let employeeId: string;
+  let employeeId: number;
 
   beforeAll(async () => {
     const tenant = await prisma.tenant.create({ data: { name: `Compensation Tenant ${Date.now()}` } });
@@ -34,7 +34,7 @@ describe('Compensation, audit, and analytics', () => {
         email: `employee-${Date.now()}@test.com`,
         department: 'Engineering',
         country: 'USA',
-        hireDate: new Date('2020-01-01')
+        joiningDate: new Date('2020-01-01')
       }
     });
     employeeId = employee.id;
@@ -53,7 +53,7 @@ describe('Compensation, audit, and analytics', () => {
     const response = await request(app)
       .post(`/api/employees/${employeeId}/compensations`)
       .set('Authorization', `Bearer ${token}`)
-      .send({ amount: 90000, currency: 'USD', effectiveDate: '2024-01-01', reason: 'Promotion' });
+      .send({ amount: 90000, currency: 'INR', effectiveDate: '2024-01-01', reason: 'Promotion' });
 
     expect(response.status).toBe(201);
     expect(response.body.amount).toBe(90000);
@@ -69,7 +69,7 @@ describe('Compensation, audit, and analytics', () => {
         tenantId,
         employeeId,
         amount: 120000,
-        currency: 'USD',
+        currency: 'INR',
         effectiveDate: new Date(Date.now() + 86400000),
         createdBy: userId
       }
@@ -80,7 +80,7 @@ describe('Compensation, audit, and analytics', () => {
       .set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(200);
-    expect(response.body.data[0]).toMatchObject({ currentSalary: 90000, currency: 'USD' });
+    expect(response.body.data[0]).toMatchObject({ currentSalary: 90000, currency: 'INR' });
   });
 
   it('returns tenant-scoped audit history and analytics', async () => {
@@ -99,7 +99,7 @@ describe('Compensation, audit, and analytics', () => {
       headcount: 1,
       totalPayroll: 90000,
       averageSalary: 90000,
-      currency: 'USD'
+      currency: 'INR'
     }));
   });
 
@@ -114,7 +114,7 @@ describe('Compensation, audit, and analytics', () => {
         tenantId,
         employeeId,
         amount: 250000,
-        currency: 'USD',
+        currency: 'INR',
         effectiveDate: new Date('2025-01-01'),
         actorId: 'invalid-actor-id-that-violates-fk',
         reason: 'Attempted fraud'
@@ -141,20 +141,20 @@ describe('Compensation, audit, and analytics', () => {
         email: `dup-${Date.now()}@test.com`,
         department: 'Engineering',
         country: 'USA',
-        hireDate: new Date('2020-01-01')
+        joiningDate: new Date('2020-01-01')
       }
     });
 
     const response1 = await request(app)
       .post(`/api/employees/${dupEmployee.id}/compensations`)
       .set('Authorization', `Bearer ${token}`)
-      .send({ amount: 90000, currency: 'USD', effectiveDate: '2024-05-01', reason: 'Initial' });
+      .send({ amount: 90000, currency: 'INR', effectiveDate: '2024-05-01', reason: 'Initial' });
     expect(response1.status).toBe(201);
 
     const response2 = await request(app)
       .post(`/api/employees/${dupEmployee.id}/compensations`)
       .set('Authorization', `Bearer ${token}`)
-      .send({ amount: 95000, currency: 'USD', effectiveDate: '2024-05-01', reason: 'Correction' });
+      .send({ amount: 95000, currency: 'INR', effectiveDate: '2024-05-01', reason: 'Correction' });
       
     expect(response2.status).toBe(409);
     expect(response2.body.error).toBe('A compensation record already exists for this effective date.');

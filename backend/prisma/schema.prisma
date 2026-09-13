@@ -37,14 +37,14 @@ model User {
 }
 
 model Employee {
-  id          String   @id @default(uuid())
+  id          Int      @id @default(autoincrement())
   tenantId    String
   firstName   String
   lastName    String
   email       String
   department  String
   country     String
-  hireDate    DateTime
+  joiningDate DateTime
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -63,7 +63,7 @@ model Employee {
 model Compensation {
   id            String   @id @default(uuid())
   tenantId      String
-  employeeId    String
+  employeeId    Int
   amount        Decimal  @db.Decimal(10, 2)
   currency      String
   effectiveDate DateTime
@@ -86,7 +86,7 @@ model Compensation {
 model AuditLog {
   id                     String   @id @default(uuid())
   tenantId               String
-  employeeId             String
+  employeeId             Int
   actorId                String
   action                 String   // e.g., "SALARY_UPDATE"
   entity                 String   // e.g., "COMPENSATION"

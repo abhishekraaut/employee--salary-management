@@ -31,7 +31,8 @@ export class AuditService {
       employeeId: log.employee.id,
       previousSalary: log.previousCompensation?.amount ? Number(log.previousCompensation.amount) : null,
       newSalary: log.newCompensation ? Number(log.newCompensation.amount) : null,
-      currency: log.newCompensation?.currency || 'USD'
+      previousCurrency: log.previousCompensation?.currency || null,
+      newCurrency: log.newCompensation?.currency || null
     }));
 
     return {

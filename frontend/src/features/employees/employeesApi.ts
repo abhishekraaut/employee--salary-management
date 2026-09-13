@@ -8,7 +8,7 @@ export interface Employee {
   country: string;
   currentSalary?: number;
   currency?: string;
-  hireDate?: string;
+  joiningDate?: string;
   createdAt?: string;
 }
 
@@ -27,7 +27,7 @@ export interface GetEmployeesArgs {
   search?: string;
   department?: string;
   country?: string;
-  sortBy?: 'firstName' | 'lastName' | 'hireDate' | 'createdAt';
+  sortBy?: 'firstName' | 'lastName' | 'joiningDate' | 'createdAt';
   sortOrder?: 'asc' | 'desc';
 }
 

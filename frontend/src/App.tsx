@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import type { RootState } from './app/store';
 import { selectIsAuthenticated } from './features/auth/authSlice';
 import { Login } from './features/auth/Login';
 import { Layout } from './components/layout/Layout';
@@ -17,23 +18,27 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  return (
-    <BrowserRouter>
-      <Suspense fallback={<div className="min-h-screen bg-slate-50 p-6 text-slate-500">Loading application...</div>}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
+  const theme = useSelector((state: RootState) => state.ui.theme);
 
-          <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="employees" element={<EmployeeList />} />
-            <Route path="employees/:id" element={<EmployeeDetails />} />
-            <Route path="analytics" element={<Analytics />} />
-            <Route path="audit" element={<AuditLog />} />
-          </Route>
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
+  return (
+    <div className={theme === 'dark' ? 'theme-dark' : 'theme-light'}>
+      <BrowserRouter>
+        <Suspense fallback={<div className="min-h-screen bg-slate-50 p-6 text-slate-500">Loading application...</div>}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+
+            <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
+              <Route index element={<Navigate to="/dashboard" replace />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="employees" element={<EmployeeList />} />
+              <Route path="employees/:id" element={<EmployeeDetails />} />
+              <Route path="analytics" element={<Analytics />} />
+              <Route path="audit" element={<AuditLog />} />
+            </Route>
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+    </div>
   );
 }
 

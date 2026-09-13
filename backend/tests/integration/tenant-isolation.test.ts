@@ -9,7 +9,7 @@ describe('Tenant Isolation', () => {
   let tenantAId: string;
   let tenantBId: string;
   let userAToken: string;
-  let employeeBId: string;
+  let employeeBId: number;
 
   beforeAll(async () => {
     const tenantA = await prisma.tenant.create({ data: { name: 'Tenant A' } });
@@ -18,7 +18,7 @@ describe('Tenant Isolation', () => {
     tenantBId = tenantB.id;
     const passwordHash = await hash('pass', 10);
     const userA = await prisma.user.create({
-      data: { tenantId: tenantAId, email: 'usera@test.com', name: 'A', passwordHash }
+      data: { tenantId: tenantAId, email: `usera-${Date.now()}@test.com`, name: 'A', passwordHash }
     });
     userAToken = jwt.sign(
       { id: userA.id, tenantId: userA.tenantId, email: userA.email },
@@ -26,19 +26,15 @@ describe('Tenant Isolation', () => {
     );
     const employeeB = await prisma.employee.create({
       data: {
-        tenantId: tenantBId, firstName: 'Bob', lastName: 'B', email: 'bob@b.com',
-        department: 'Engineering', country: 'UK', hireDate: new Date()
+        tenantId: tenantBId, firstName: 'Bob', lastName: 'B', email: `bob-${Date.now()}@b.com`,
+        department: 'Engineering', country: 'UK', joiningDate: new Date()
       }
     });
     employeeBId = employeeB.id;
   });
 
   afterAll(async () => {
-    await prisma.auditLog.deleteMany();
-    await prisma.auditLog.deleteMany(); await prisma.compensation.deleteMany();
-    await prisma.employee.deleteMany();
-    await prisma.user.deleteMany();
-    await prisma.tenant.deleteMany();
+    
     await prisma.$disconnect();
   });
 

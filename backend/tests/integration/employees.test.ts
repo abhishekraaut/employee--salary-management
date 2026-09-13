@@ -10,34 +10,28 @@ describe('Employees API', () => {
   let userToken: string;
 
   beforeAll(async () => {
-    await prisma.auditLog.deleteMany(); await prisma.compensation.deleteMany();
-    await prisma.employee.deleteMany();
-    await prisma.user.deleteMany();
-    await prisma.tenant.deleteMany();
+    
 
     const tenant = await prisma.tenant.create({ data: { name: 'Tenant' } });
     tenantId = tenant.id;
 
     const user = await prisma.user.create({
-      data: { tenantId, email: 'user@test.com', name: 'User', passwordHash: await hash('pass', 10) }
+      data: { tenantId, email: `user-${Date.now()}@test.com`, name: 'User', passwordHash: await hash('pass', 10) }
     });
 
     userToken = jwt.sign({ id: user.id, tenantId, email: user.email }, process.env.JWT_SECRET || 'supersecret_for_assessment');
 
     await prisma.employee.createMany({
       data: [
-        { tenantId, firstName: 'Alice', lastName: 'Zane', email: 'alice@test.com', department: 'Engineering', country: 'USA', hireDate: new Date('2021-01-01'), createdAt: new Date('2024-01-01') },
-        { tenantId, firstName: 'Bob', lastName: 'Yates', email: 'bob@test.com', department: 'Sales', country: 'UK', hireDate: new Date('2022-01-01'), createdAt: new Date('2024-01-02') },
-        { tenantId, firstName: 'Charlie', lastName: 'Xavier', email: 'charlie@test.com', department: 'Engineering', country: 'Canada', hireDate: new Date('2023-01-01'), createdAt: new Date('2024-01-03') }
+        { tenantId, firstName: 'Alice', lastName: 'Zane', email: `alice-${Date.now()}@test.com`, department: 'Engineering', country: 'USA', joiningDate: new Date('2021-01-01'), createdAt: new Date('2024-01-01') },
+        { tenantId, firstName: 'Bob', lastName: 'Yates', email: `bob-${Date.now()}@test.com`, department: 'Sales', country: 'UK', joiningDate: new Date('2022-01-01'), createdAt: new Date('2024-01-02') },
+        { tenantId, firstName: 'Charlie', lastName: 'Xavier', email: 'charlie@test.com', department: 'Engineering', country: 'Canada', joiningDate: new Date('2023-01-01'), createdAt: new Date('2024-01-03') }
       ]
     });
   });
 
   afterAll(async () => {
-    await prisma.auditLog.deleteMany(); await prisma.compensation.deleteMany();
-    await prisma.employee.deleteMany();
-    await prisma.user.deleteMany();
-    await prisma.tenant.deleteMany();
+    
   });
 
   describe('Sorting and Pagination', () => {

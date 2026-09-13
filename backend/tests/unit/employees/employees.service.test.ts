@@ -104,30 +104,30 @@ describe('EmployeesService', () => {
     it('propagates tenantId strictly and handles not-found behavior', async () => {
       vi.mocked(employeesRepository.findById).mockResolvedValue(null);
 
-      const result = await employeesService.getEmployeeById({ tenantId: 'tenant-1', employeeId: 'emp-1' });
+      const result = await employeesService.getEmployeeById({ tenantId: 'tenant-1', employeeId: 1 });
 
-      expect(employeesRepository.findById).toHaveBeenCalledWith({ tenantId: 'tenant-1', employeeId: 'emp-1' });
+      expect(employeesRepository.findById).toHaveBeenCalledWith({ tenantId: 'tenant-1', employeeId: 1 });
       expect(result).toBeNull();
     });
 
     it('returns the employee if found', async () => {
-      const mockEmployee = {
-        id: 'emp-1',
+      const mockEmployee: any = {
+        id: 1,
         tenantId: 'tenant-1',
         firstName: 'Bob',
         lastName: 'Smith',
         email: 'bob@test.com',
         department: 'Engineering',
         country: 'US',
-        hireDate: new Date(),
+        joiningDate: new Date(),
         isActive: true,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(), currentSalary: null, currency: null
       };
       
       vi.mocked(employeesRepository.findById).mockResolvedValue(mockEmployee);
 
-      const result = await employeesService.getEmployeeById({ tenantId: 'tenant-1', employeeId: 'emp-1' });
+      const result = await employeesService.getEmployeeById({ tenantId: 'tenant-1', employeeId: 1 });
 
       expect(result).toEqual(mockEmployee);
     });

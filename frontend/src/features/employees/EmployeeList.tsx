@@ -1,10 +1,11 @@
 import { useDeferredValue, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGetEmployeesQuery } from './employeesApi';
-import { Search, Filter, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
+import { Search, Filter, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, Eye } from 'lucide-react';
+import { formatDate } from '../../utils/formatters';
 import { formatCurrency } from '../../utils/formatters';
 
-type EmployeeSortField = 'firstName' | 'lastName' | 'hireDate' | 'createdAt';
+type EmployeeSortField = 'firstName' | 'lastName' | 'joiningDate' | 'createdAt';
 
 export function EmployeeList() {
   const navigate = useNavigate();
@@ -97,25 +98,27 @@ export function EmployeeList() {
                 </th>
                 <th scope="col" className="px-6 py-4">Department</th>
                 <th scope="col" className="px-6 py-4">Country</th>
+                <th scope="col" className="px-6 py-4">Date of Joining</th>
                 <th scope="col" className="px-6 py-4">Current Salary</th>
+                <th scope="col" className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
               {isLoading || isFetching ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
                     Loading employees...
                   </td>
                 </tr>
               ) : isError ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-red-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-red-500">
                     Error loading employees. Please try again.
                   </td>
                 </tr>
               ) : data?.data.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
                     No employees found matching your criteria.
                   </td>
                 </tr>
@@ -131,8 +134,19 @@ export function EmployeeList() {
                     </td>
                     <td className="px-6 py-4">{employee.department}</td>
                     <td className="px-6 py-4">{employee.country}</td>
+                    <td className="px-6 py-4">{employee.joiningDate ? formatDate(employee.joiningDate) : '-'}</td>
                     <td className="px-6 py-4 font-medium">
                       {employee.currentSalary != null ? formatCurrency(employee.currentSalary, employee.currency) : '-'}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); navigate(`/employees/${employee.id}`); }}
+                        className="p-2 text-slate-400 hover:text-blue-600 rounded-full hover:bg-blue-50 transition-colors"
+                        aria-label="View details"
+                        title="View details"
+                      >
+                        <Eye className="h-5 w-5" />
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -142,31 +156,82 @@ export function EmployeeList() {
         </div>
 
         {/* Pagination */}
-        {data && data.meta.totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between">
+        {data && data.meta.totalPages > 1 && (() => {
+          const { page: curr, totalPages } = data.meta;
+          const generatePages = () => {
+            const pages = [];
+            const maxVisible = 5;
+            if (totalPages <= maxVisible) {
+              for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else {
+              if (curr <= 3) {
+                pages.push(1, 2, 3, 4, '...', totalPages);
+              } else if (curr >= totalPages - 2) {
+                pages.push(1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+              } else {
+                pages.push(1, '...', curr - 1, curr, curr + 1, '...', totalPages);
+              }
+            }
+            return pages;
+          };
+
+          return (
+          <div className="px-6 py-4 border-t border-slate-200 flex flex-col sm:flex-row gap-4 items-center justify-between">
             <span className="text-sm text-slate-500">
-              Showing page <span className="font-medium text-slate-900">{data.meta.page}</span> of <span className="font-medium text-slate-900">{data.meta.totalPages}</span>
+              Showing page <span className="font-medium text-slate-900">{curr}</span> of <span className="font-medium text-slate-900">{totalPages}</span>
             </span>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-1">
               <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
+                onClick={() => setPage(1)}
+                disabled={curr === 1}
                 className="p-2 border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                aria-label="Previous page"
+                aria-label="First page"
+                title="First page"
               >
-                <ChevronLeft className="h-5 w-5" />
+                <ChevronsLeft className="h-4 w-4" />
               </button>
               <button
-                onClick={() => setPage(p => Math.min(data.meta.totalPages, p + 1))}
-                disabled={page === data.meta.totalPages}
-                className="p-2 border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={curr === 1}
+                className="p-2 border border-slate-300 rounded-lg hover:bg-slate-50 flex items-center text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="h-4 w-4 sm:mr-1" /> <span className="hidden sm:inline">Previous</span>
+              </button>
+              
+              <div className="hidden sm:flex gap-1 mx-2">
+                {generatePages().map((p, i) => (
+                  <button
+                    key={i}
+                    onClick={() => typeof p === 'number' && setPage(p)}
+                    disabled={p === '...'}
+                    className={`min-w-[36px] h-9 rounded-lg text-sm font-medium ${p === curr ? 'bg-blue-600 text-white' : p === '...' ? 'cursor-default text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={curr === totalPages}
+                className="p-2 border border-slate-300 rounded-lg hover:bg-slate-50 flex items-center text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Next page"
               >
-                <ChevronRight className="h-5 w-5" />
+                <span className="hidden sm:inline">Next</span> <ChevronRight className="h-4 w-4 sm:ml-1" />
+              </button>
+              <button
+                onClick={() => setPage(totalPages)}
+                disabled={curr === totalPages}
+                className="p-2 border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Last page"
+                title="Last page"
+              >
+                <ChevronsRight className="h-4 w-4" />
               </button>
             </div>
           </div>
-        )}
+        );})()}
       </div>
     </div>
   );

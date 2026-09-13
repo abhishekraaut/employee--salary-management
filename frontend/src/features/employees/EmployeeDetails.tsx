@@ -34,7 +34,7 @@ export function EmployeeDetails() {
           <div className="mt-2 flex flex-wrap gap-4 text-sm text-slate-600">
             <span className="bg-slate-100 px-3 py-1 rounded-full">{employee.department}</span>
             <span className="bg-slate-100 px-3 py-1 rounded-full">{employee.country}</span>
-            <span className="bg-slate-100 px-3 py-1 rounded-full">Hired {formatDate(employee.hireDate!)}</span>
+            <span className="bg-slate-100 px-3 py-1 rounded-full">Hired {formatDate(employee.joiningDate!)}</span>
           </div>
         </div>
         <div className="text-right">

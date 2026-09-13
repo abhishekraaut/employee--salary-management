@@ -48,9 +48,11 @@ describe('AuditService', () => {
         action: 'SALARY_UPDATE',
         reason: 'Promotion',
         actor: { name: 'Admin', email: 'admin@test.com' },
-        employee: { firstName: 'John', lastName: 'Doe', id: 'emp-1' },
-        previousCompensation: { amount: new (require('@prisma/client').Prisma.Decimal)(50000), currency: 'USD' },
-        newCompensation: { amount: new (require('@prisma/client').Prisma.Decimal)(60000), currency: 'USD' }
+        employee: { firstName: 'John', lastName: 'Doe', id: 1 },
+        previousCompensation: { amount: new (require('@prisma/client').Prisma.Decimal)(50000), previousCurrency: null,
+        newCurrency: null },
+        newCompensation: { amount: new (require('@prisma/client').Prisma.Decimal)(60000), previousCurrency: null,
+        newCurrency: null }
       }] as any);
 
       const result = await auditService.getAuditLogs({ tenantId: 'tenant-1' }, { page: 1, limit: 10 });
@@ -62,10 +64,11 @@ describe('AuditService', () => {
         reason: 'Promotion',
         actorName: 'Admin',
         employeeName: 'John Doe',
-        employeeId: 'emp-1',
+        employeeId: 1,
         previousSalary: 50000,
         newSalary: 60000,
-        currency: 'USD'
+        previousCurrency: null,
+        newCurrency: null
       });
       expect(result.meta).toEqual({
         total: 1,

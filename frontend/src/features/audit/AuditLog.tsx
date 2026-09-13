@@ -50,12 +50,12 @@ export function AuditLog() {
                     <td className="px-6 py-4">
                       {log.previousSalary !== null && log.newSalary !== null ? (
                         <div className="flex items-center gap-2">
-                          <span className="text-slate-500 line-through">{formatCurrency(log.previousSalary, log.currency)}</span>
+                          <span className="text-slate-500 line-through">{formatCurrency(log.previousSalary, log.previousCurrency || "USD")}</span>
                           <span className="text-slate-400">→</span>
-                          <span className="font-medium text-green-600">{formatCurrency(log.newSalary, log.currency)}</span>
+                          <span className="font-medium text-green-600">{formatCurrency(log.newSalary, log.newCurrency || "USD")}</span>
                         </div>
                       ) : log.newSalary !== null ? (
-                        <span className="font-medium text-green-600">Set to {formatCurrency(log.newSalary, log.currency)}</span>
+                        <span className="font-medium text-green-600">Set to {formatCurrency(log.newSalary, log.newCurrency || "USD")}</span>
                       ) : '-'}
                     </td>
                   </tr>

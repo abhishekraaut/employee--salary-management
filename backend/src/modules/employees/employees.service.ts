@@ -49,8 +49,14 @@ export class EmployeesService {
     };
   }
 
-  async getEmployeeById(context: EmployeeIdContext) {
-    return employeesRepository.findById(context);
+    async getEmployeeById(context: EmployeeIdContext) {
+    const emp = await employeesRepository.findById(context);
+    if (!emp) return null;
+    return {
+      ...emp,
+      currentSalary: emp.compensations?.[0]?.amount ? Number(emp.compensations[0].amount) : null,
+      currency: emp.compensations?.[0]?.currency || null,
+    };
   }
 }
 

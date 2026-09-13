@@ -20,7 +20,7 @@ export interface SortParams {
 
 export interface EmployeeIdContext {
   tenantId: string;
-  employeeId: string;
+  employeeId: number;
 }
 
 export class EmployeesRepository {
@@ -65,11 +65,18 @@ export class EmployeesRepository {
     });
   }
 
-  async findById(context: EmployeeIdContext) {
+    async findById(context: EmployeeIdContext) {
     return prisma.employee.findFirst({
       where: {
         id: context.employeeId,
         tenantId: context.tenantId
+      },
+      include: {
+        compensations: {
+          where: { effectiveDate: { lte: new Date() } },
+          orderBy: [{ effectiveDate: 'desc' }, { createdAt: 'desc' }],
+          take: 1
+        }
       }
     });
   }
